@@ -14,8 +14,21 @@ export default function Members() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await fetch("/Members/VJDQ_MEMBER_DETAILS_24-28 - DOMAIN_DIVISION_FINAL.csv");
-        const text = await response.text();
+        // Fetch encrypted data to hide contents from network tab
+        const response = await fetch("/Members/members_data.enc");
+        const encryptedText = await response.text();
+
+        // Decrypt data
+        const SECRET_KEY = "VJDQ_Secret_Key_24_28";
+        let decryptedText = "";
+        for (let i = 0; i < encryptedText.length; i += 2) {
+          const hex = encryptedText.substr(i, 2);
+          const charCode = parseInt(hex, 16);
+          const keyChar = SECRET_KEY.charCodeAt((i / 2) % SECRET_KEY.length);
+          decryptedText += String.fromCharCode(charCode ^ keyChar);
+        }
+
+        const text = decryptedText;
 
         // Parse CSV
         const lines = text.split("\n");
@@ -70,7 +83,6 @@ export default function Members() {
 
     if (member) {
       setMemberData(member);
-      console.log(member);
     } else {
       // Check if ID is in the range VJDQ2K25001 to VJDQ2K25148
       const idPattern = /^VJDQ2K25(\d{3})$/i;
